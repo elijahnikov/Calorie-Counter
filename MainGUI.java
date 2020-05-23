@@ -1,5 +1,8 @@
 package calorieintake;
 
+import sun.invoke.empty.Empty;
+import sun.java2d.pipe.SpanShapeRenderer;
+
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Color;
@@ -21,32 +24,28 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
+import java.text.DateFormat;
+import java.text.Format;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Vector;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.AbstractAction;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 public class MainGUI extends JFrame implements ActionListener{
-    
+
     public MainGUI(){
         super("Calorie Intake");
         super.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         initGUI();
     }
     
-    private void initGUI() {
+    public void initGUI() {
         
         //button action command initialisation
         exitBtn.addActionListener(this);
@@ -64,11 +63,11 @@ public class MainGUI extends JFrame implements ActionListener{
         centerPanel.setMaximumSize(centerPanel.getMinimumSize());
         centerPanel.setPreferredSize(centerPanel.getMinimumSize());
         
-        rightPanel.setMinimumSize(new Dimension(100, 360));
+        rightPanel.setMinimumSize(new Dimension(110, 360));
         rightPanel.setMaximumSize(rightPanel.getMinimumSize());
         rightPanel.setPreferredSize(rightPanel.getMinimumSize());
         
-        bottomPanel.setMinimumSize(new Dimension(400, 60));
+        bottomPanel.setMinimumSize(new Dimension(400, 50));
         bottomPanel.setMaximumSize(bottomPanel.getMinimumSize());
         bottomPanel.setPreferredSize(bottomPanel.getMinimumSize());  
         
@@ -102,7 +101,7 @@ public class MainGUI extends JFrame implements ActionListener{
         rightPanel.setLayout(new BorderLayout());
         
         rightPanel.add(exitBtnPanel, BorderLayout.SOUTH);
-        exitBtnPanel.setMinimumSize(new Dimension(100, 100));
+        exitBtnPanel.setMinimumSize(new Dimension(100, 90));
         exitBtnPanel.setPreferredSize(exitBtnPanel.getMinimumSize());
         exitBtnPanel.add(saveLbl);
         exitBtnPanel.add(saveBtn);
@@ -116,7 +115,7 @@ public class MainGUI extends JFrame implements ActionListener{
         targetPanel.add(newTargetBtn);
         targetPanel.add(resetBtn);
         
-        targetLbl.setBorder(new EmptyBorder(0, 6, 0, 0));
+        targetLbl.setBorder(new EmptyBorder(0, 10, 0, 0));
         targetLbl.setFont(new Font("Lucida Grande", 0, 14));
         targetNum.setFont(new Font("Lucida Grande", 1, 24));
         //--------------------------------------------------------------
@@ -134,14 +133,19 @@ public class MainGUI extends JFrame implements ActionListener{
         //--------------------------------------------------------------
         
         //center panel layout-------------------------------------------
+        centerPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
         model = new DefaultTableModel(null, column);
         table = new JTable(model);
-        table.getColumnModel().getColumn(0).setPreferredWidth(180);
-        table.getColumnModel().getColumn(1).setPreferredWidth(100);
+        table.getColumnModel().getColumn(0).setPreferredWidth(60);
+        table.getColumnModel().getColumn(1).setPreferredWidth(160);
+        table.getColumnModel().getColumn(2).setPreferredWidth(100);
         table.setFont(new Font("Lucida Grande", Font.PLAIN, 14));
         table.setRowHeight(24);
         tableScroll = new JScrollPane(table);
-        tableScroll.setPreferredSize(new Dimension(370, 400));
+        tableScroll.setPreferredSize(new Dimension(360, 340));
+        dateLbl.setText(datetime.getDate() + "   " + datetime.getTime());
+        dateLbl.setBorder(new EmptyBorder(0, 5, 0, 0));
+        centerPanel.add(dateLbl);
         centerPanel.add(tableScroll);
         //--------------------------------------------------------------
         
@@ -151,7 +155,7 @@ public class MainGUI extends JFrame implements ActionListener{
             public void focusGained(FocusEvent e){
                 if (nameField.getText().equals("Name")){
                     nameField.setText("");
-                    nameField.setForeground(Color.BLACK);
+                    nameField.setForeground(new Color(191, 191,191));
                 }
             }
             @Override
@@ -168,7 +172,7 @@ public class MainGUI extends JFrame implements ActionListener{
            public void focusGained(FocusEvent e){
                if (countField.getText().equals("Count")){
                    countField.setText("");
-                   countField.setForeground(Color.BLACK);
+                   countField.setForeground(new Color(191, 191,191));
                }
            }
            @Override
@@ -182,13 +186,15 @@ public class MainGUI extends JFrame implements ActionListener{
         
         //jframe initialisation
         add(mainPanel);
-        setMinimumSize(new Dimension(500, 460));
-        setPreferredSize(new Dimension(500, 460));
+        setMinimumSize(new Dimension(480, 450));
+        setPreferredSize(new Dimension(480, 450));
         setResizable(false);
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
-       
+        rootPane = SwingUtilities.getRootPane(addBtn);
+        rootPane.setDefaultButton(addBtn);
+
     }
     
     //button functionality
@@ -212,17 +218,13 @@ public class MainGUI extends JFrame implements ActionListener{
         }
         
         if("save".equals(e.getActionCommand())){
-            
-            try {
-                save.exportTable(table, tablePath);
-            } catch (IOException ex) {}
-            
+            save.exportToCSV(table, csvPath);
         }
     }
     
     //method to add to table
-    public void addToTable(String name, String count){
-        model.addRow(new Object[]{name, count});
+    public void addToTable(String time, String name, String count){
+        model.addRow(new Object[]{time, name, count});
     }
     
     //setter to set label text
@@ -246,7 +248,7 @@ public class MainGUI extends JFrame implements ActionListener{
         if(!nameField.getForeground().equals(Color.GRAY) && !countField.getForeground().equals(Color.GRAY)){
                 
             //adding name and count input into jtable 
-            addToTable(nameField.getText(), countField.getText());
+            addToTable(datetime.getTime(), nameField.getText(), countField.getText());
 
             //setting label to new calorie count read from text file
             try {
@@ -259,17 +261,20 @@ public class MainGUI extends JFrame implements ActionListener{
             newTarget = calorieTarget - count;
                 
             //saving new calorie target value to edited calorie text file
-            //and displaying it
+            //and displaying it.
+            //save added table data into text file.
             save.saveToFile(String.valueOf(newTarget), editedTargetPath);
             try {
                 setTargetLabel(read.readFromFile(editedTargetPath));
-            } catch (IOException ex){} 
+                save.exportTable(table, tablePath);
+            } catch (IOException ex){}
                 
             //resetting fields back to original
             nameField.setForeground(Color.GRAY);
             nameField.setText("Name");
             countField.setForeground(Color.GRAY);
             countField.setText("Count");
+            nameField.requestFocus();
                 
         } 
         
@@ -294,8 +299,11 @@ public class MainGUI extends JFrame implements ActionListener{
             PrintWriter writer = new PrintWriter(new File(tablePath));
             writer.print("");
             writer.close();
+            System.out.println("Cleared table and table data text file.");
 
-        } catch (IOException ex){}
+        } catch (NullPointerException | FileNotFoundException ex){
+
+        } catch (IOException e) {}
 
     }
 
@@ -304,6 +312,7 @@ public class MainGUI extends JFrame implements ActionListener{
     private Target target = new Target();
     private ReadFromFile read = new ReadFromFile();
     private SaveToFile save = new SaveToFile();
+    private DateTime datetime = new DateTime();
     
     private JPanel mainPanel = new JPanel();
     private JPanel centerPanel = new JPanel();
@@ -312,6 +321,7 @@ public class MainGUI extends JFrame implements ActionListener{
     private JPanel exitBtnPanel = new JPanel();
     private JPanel targetPanel = new JPanel();
     private JScrollPane tableScroll;
+    private JRootPane rootPane;
     
     private JButton exitBtn = new JButton("Exit");
     private JButton saveBtn = new JButton("Save");
@@ -322,16 +332,24 @@ public class MainGUI extends JFrame implements ActionListener{
     private JLabel targetLbl = new JLabel("Target:");
     private static JLabel targetNum = new JLabel();
     private JLabel saveLbl = new JLabel("Save to CSV");
+    private JLabel dateLbl = new JLabel();
     
     private JTextField nameField = new JTextField("Name");
     private JTextField countField = new JTextField("Count");
     
     public static JTable table;
     public DefaultTableModel model;
-    private String[] column = {"Name", "Calorie count"};
+    private String[] column = {"Time", "Name", "Calorie count"};
     
     private String targetPath = System.getProperty("user.home") + "/Desktop" + "/target.txt";
     private String editedTargetPath = System.getProperty("user.home") + "/Desktop" + "/edited-target.txt";
     private String tablePath = System.getProperty("user.home") + "/Desktop" + "/tableData.txt";
+    private String csvPath = System.getProperty("user.home") + "/Desktop" + "/table.csv";
+
+    private Calendar cal = Calendar.getInstance();
+    private SimpleDateFormat format = new SimpleDateFormat("dd/MMMM/yyyy");
+    private Format dayFormat = new SimpleDateFormat("EEEE");
+    private String dayStr = dayFormat.format(new Date());
+    private String fullDateStr = dayStr + " " + format.format(cal.getTime());
 
 }

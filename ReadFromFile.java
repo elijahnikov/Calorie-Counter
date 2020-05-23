@@ -27,10 +27,12 @@ public class ReadFromFile {
             Object[] lines = br.lines().toArray();
 
             for (int i = 0; i < lines.length; i++){
-                //split when first instance of number encountered (calorie in this case)
-                String[] row = lines[i].toString().split("(?<=\\D)(?=\\d)");
+                //split by comma
+                String[] row = lines[i].toString().split(",");
+                //add time, name and count data from text file into table
                 model.addRow(row);
             }
+
         } catch (FileNotFoundException ex){}
 
     }

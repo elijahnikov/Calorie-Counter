@@ -38,11 +38,13 @@ public class SaveToFile {
        try{
            FileWriter fw = new FileWriter(file);
            BufferedWriter bw = new BufferedWriter(fw);
-           
+
            for (int i = 0; i < table.getModel().getRowCount(); i++){
+               //import time when data was input into table and write to text file
                for (int j = 0; j < table.getModel().getColumnCount(); j++){
-                   bw.write(table.getModel().getValueAt(i, j).toString());
+                   bw.write(table.getModel().getValueAt(i, j).toString() + ",");
                }
+               bw.write(",");
                bw.newLine();
            }
            
@@ -51,5 +53,31 @@ public class SaveToFile {
        } catch (IOException ex){}
        
     }
-    
+
+    public void exportToCSV(JTable table, String path){
+
+        try{
+
+            TableModel model = table.getModel();
+            FileWriter csv = new FileWriter(new File(path));
+
+            for (int i = 0; i < model.getColumnCount(); i++){
+                csv.write(model.getColumnName(i) + ",");
+            }
+
+            csv.write("\n");
+
+            for (int i = 0; i < model.getRowCount(); i++){
+                for (int j = 0; j < model.getColumnCount(); j++){
+                    csv.write(model.getValueAt(i, j).toString() + ",");
+                }
+                csv.write("\n");
+            }
+
+            csv.close();
+
+        } catch (IOException e) {}
+
+    }
+
 }

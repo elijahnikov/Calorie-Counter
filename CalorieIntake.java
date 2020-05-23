@@ -17,9 +17,9 @@ public class CalorieIntake {
         float heightCm = (float) (tempHeight * 2.54);
 
         //BMR, weight, height, age for males and females.
-        if (gender == "Male"){
+        if (gender.equals("Male")){
             constant = 5;
-        } else if (gender == "Female"){
+        } else if (gender.equals("Female")){
             constant = -161;
         }
 

@@ -11,15 +11,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import javax.swing.ButtonGroup;
-import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
+import javax.swing.*;
 
 public class CalorieGoalGUI extends JFrame implements ActionListener {
 
@@ -29,7 +21,15 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
     }
     
     private void initGUI() {
-        
+
+        //adding actionlistener and actioncommand to save button and activity list
+        saveBtn.addActionListener(this);
+        saveBtn.setActionCommand("save");
+        cancelBtn.addActionListener(this);
+        cancelBtn.setActionCommand("cancel");
+        activityList.addActionListener(this);
+        activityList.setActionCommand("activity");
+
         ageField.setPreferredSize(new Dimension(60, 30));
         heightFeetField.setPreferredSize(new Dimension(60, 30));
         heightInchesField.setPreferredSize(new Dimension(60, 30));
@@ -37,12 +37,6 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
 
         heightFeetField.setForeground(Color.GRAY);
         heightInchesField.setForeground(Color.GRAY);
-        
-        //adding actionlistener and actioncommand to save button and activity list
-        saveBtn.addActionListener(this);
-        saveBtn.setActionCommand("save");
-        activityList.addActionListener(this);
-        activityList.setActionCommand("activity");
 
         //group radio buttons in ButtonGroup
         genderGroup.add(maleBtn);
@@ -109,6 +103,12 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
         c.gridx = 1;
         c.gridy = 8;
         mainPanel.add(saveBtn, c);
+        c.gridx = 0;
+        c.gridy = 8;
+        c.weightx = -1;
+        c.weighty = -1;
+        c.insets = new Insets(3, -17, 3, 3);
+        mainPanel.add(cancelBtn, c);
         
         //creating placeholder text for jtextfields        
         heightFeetField.addFocusListener(new FocusListener(){
@@ -116,7 +116,7 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
            public void focusGained(FocusEvent e){
                if (heightFeetField.getText().equals("Feet")){
                    heightFeetField.setText("");
-                   heightFeetField.setForeground(Color.BLACK);
+                   heightFeetField.setForeground(new Color(191, 191,191));
                }
            }
            @Override
@@ -133,7 +133,7 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
             public void focusGained(FocusEvent e){
                 if (heightInchesField.getText().equals("Inches")){
                     heightInchesField.setText("");
-                    heightInchesField.setForeground(Color.BLACK);
+                    heightInchesField.setForeground(new Color(191, 191,191));
                 }
             }
             @Override
@@ -152,22 +152,24 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
+        rootPane = SwingUtilities.getRootPane(saveBtn);
+        rootPane.setDefaultButton(saveBtn);
     }
     
     //button and radio button functionality
     @Override
     public void actionPerformed(ActionEvent e) {
-        
-        double ageInput = 0;
-        double heightFeetInput = 0;
-        double heightInchesInput = 0;
-        double weightInput = 0;
-        String genderBtnCheck = "";
-        String goalBtnCheck = "";    
-        
+
         //button to perform calculation
         if ("save".equals(e.getActionCommand())){
-            
+
+            double ageInput = 0;
+            double heightFeetInput = 0;
+            double heightInchesInput = 0;
+            double weightInput = 0;
+            String genderBtnCheck = "";
+            String goalBtnCheck = "";
+
             //check which gender is selected
             if (maleBtn.isSelected()){
                 genderBtnCheck = "Male";
@@ -206,7 +208,7 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
                     //call to the calorie method to calculate number of calories to intake
                     String count = calculate.calorie(ageInput, genderBtnCheck, heightFeetInput, 
                         heightInchesInput, weightInput, activitySelection, goalBtnCheck);
-                    
+
                     save.saveToFile(count, targetPath);
                     save.saveToFile(count, editedTargetPath);
                     
@@ -220,39 +222,50 @@ public class CalorieGoalGUI extends JFrame implements ActionListener {
             } else {
                 JOptionPane.showMessageDialog(null, "Please enter input in all fields.");
             }
-        } 
+        }
+
+        if ("cancel".equals(e.getActionCommand())){
+            dispose();
+        }
+
     }   
     
     //variable declarations
     private JPanel mainPanel = new JPanel();
     private GridBagConstraints c = new GridBagConstraints();
+
     private JLabel ageLbl = new JLabel("Age");
     private JLabel genderLbl = new JLabel("Gender");
     private JLabel heightLbl = new JLabel("Height");
     private JLabel weightLbl = new JLabel("Weight(kg)");
     private JLabel activityLbl = new JLabel("Activity");
     private JLabel goalLbl = new JLabel("Goal");
+
     private JTextField ageField = new JTextField();
     private JTextField heightFeetField = new JTextField("Feet");
     private JTextField heightInchesField = new JTextField("Inches");
     private JTextField weightField = new JTextField();
+
     private JRadioButton maleBtn = new JRadioButton("Male");
     private JRadioButton femaleBtn = new JRadioButton("Female");
     private JRadioButton fatLossBtn = new JRadioButton("Fat Loss");
     private JRadioButton maintainBtn = new JRadioButton("Maintenance");
     private JRadioButton bulkBtn = new JRadioButton("Muscle Gain");
+
     private ButtonGroup genderGroup = new ButtonGroup();
     private ButtonGroup goalGroup = new ButtonGroup();
-    private String[] activityStrings = {"Sedentary",
-                                        "Light",
-                                        "Moderate",
-                                        "Very Active",
-                                        "Extra Active"}; 
+
+    private String[] activityStrings = {"Sedentary", "Light", "Moderate",
+    "Very Active", "Extra Active"};
     private JComboBox activityList = new JComboBox(activityStrings);
+
     private JButton saveBtn = new JButton("Save");
+    private JButton cancelBtn = new JButton("Cancel");
+
     private Validation v = new Validation();
     private CalorieIntake calculate = new CalorieIntake();
     private SaveToFile save = new SaveToFile();
+
     private ReadFromFile read = new ReadFromFile();
     private String targetPath = System.getProperty("user.home") + "/Desktop" + "/target.txt";
     private String editedTargetPath = System.getProperty("user.home") + "/Desktop" + "/edited-target.txt";
